@@ -1,0 +1,946 @@
+Practical Code 1: (Logical Operations)(posting index)
+
+# Define the plays and their text content
+plays = {
+    "Anthony and Cleopatra": "Anthony is there, Brutus is Caeser is with Cleopatra mercy worser",
+    "Julius Caesar": "Anthony is there, Brutus is Caeser is but Calpurnia is.",
+    "The Tempest": "mercy worser",
+    "Hamlet": "Caeser and Brutus are present with mercy and worser",
+    "Othello": "Caeser is present with mercy and worser",
+    "Macbeth": "Anthony is there, Caeser, mercy."
+}
+
+# Define important words to search in plays
+words = ["Anthony", "Brutus", "Caeser", "Calpurnia", "Cleopatra", "mercy", "worser"]
+
+# Initialize a matrix with zeros (word presence in plays)
+matrix = [[0 for _ in range(len(plays))] for _ in range(len(words))]
+
+# Convert play values (text content) into a list
+text_list = list(plays.values())
+
+# Print the list of play texts and words for reference
+print("Text Content of Plays:", text_list)
+print("Words to Search:", words)
+
+# Fill the matrix: 1 if word is found in a play, else 0
+for i in range(len(words)):
+    for j in range(len(text_list)):
+        if words[i] in text_list[j]:
+            matrix[i][j] = 1
+
+# Display the binary matrix
+print("\nWord Presence Matrix:")
+for row in matrix:
+    print(row)
+
+# Convert each row of the matrix into a binary string
+binary_vectors = ["".join(map(str, row)) for row in matrix]
+print("\nBinary Representation of Word Presence:")
+print(binary_vectors)
+
+# Get user input for the condition (logical query)
+condition = input("\nEnter the condition (use words AND, OR, NOT): ")
+condition_words = condition.split()
+
+# Convert the condition into a valid Python expression
+eval_condition = ""
+for word in condition_words:
+    if word in words:
+        eval_condition += str(int(binary_vectors[words.index(word)], 2))  # Convert binary to decimal
+    elif word.lower() == "and":
+        eval_condition += " & "
+    elif word.lower() == "or":
+        eval_condition += " | "
+    elif word.lower() == "not":
+        eval_condition += " ~ "
+
+# Evaluate the logical condition
+print("\nEvaluating Condition:", eval_condition)
+binary_result = "{0:b}".format(eval(eval_condition))  # Convert result back to binary
+print("Result in Binary:", binary_result)
+
+# Identify the plays where the condition is met
+matching_plays = []
+play_titles = list(plays.keys())
+
+for i in range(len(binary_result)):
+    if binary_result[i] == "1":
+        matching_plays.append(play_titles[i])
+
+# Display the plays that match the condition
+print("\nPlays that satisfy the condition:")
+print(matching_plays)
+
+
+Option2:
+
+# Sample plays and words
+plays = {
+    "Play1": "Anthony is here, Brutus is here.",
+    "Play2": "Caeser is here, but Calpurnia is not.",
+    "Play3": "Cleopatra is here, mercy is here.",
+}
+
+# List of words to check in the plays
+words = ["Anthony", "Brutus", "Caeser", "Calpurnia", "Cleopatra", "mercy"]
+
+# Create a matrix to represent the presence of words in plays
+mat = []
+for word in words:
+    row = []  # Initialize a new row for the current word
+    for text in plays.values():
+        # Check if the word is in the play's text and append 1 (true) or 0 (false)
+        row.append(int(word in text))
+    mat.append(row)  # Add the row to the matrix
+
+# Display the presence matrix
+print("Presence Matrix:")
+for row in mat:
+    print(row)
+
+# Convert each row of the matrix to a binary string
+vecd = []  # Initialize an empty list for binary strings
+for row in mat:
+    binary_string = ""  # Start with an empty string for the current row
+    for x in row:
+        binary_string += str(x)  # Append each element (0 or 1) to the string
+    vecd.append(binary_string)  # Add the completed binary string to the list
+
+# Display the binary representation of presence
+print("Binary Representation of Presence:")
+print(vecd)
+
+# Input condition from the user
+cond = input("Enter the condition (use 'and', 'or', 'not'): ")
+cond_words = cond.split()  # Split the input into individual words
+
+# Prepare to evaluate the condition
+eval_cond = ""
+for word in cond_words:
+    if word in words:
+        # If the word is in the list of words, find its index
+        index = words.index(word)
+        # Append the corresponding binary string to the evaluation condition
+        eval_cond += vecd[index]
+    elif word == "and":
+        eval_cond += "&"  # Append the AND operator
+    elif word == "or":
+        eval_cond += "|"  # Append the OR operator
+    elif word == "not":
+        eval_cond += "~"  # Append the NOT operator
+
+# Calculate the result of the logical expression
+# Replace '~' with 'not' for Python evaluation
+result = eval(eval_cond.replace("~", "not "))
+
+# Determine which plays meet the condition
+which_plays = []  # Initialize an empty list for plays that meet the condition
+for i, play in enumerate(plays.keys()):
+    # Check if the result for the current play is True (1)
+    if result[i]:
+        which_plays.append(play)  # Add the play to the list if it meets the condition
+
+# Output the results
+print("Plays that meet the condition:", which_plays)
+
+
+
+Practical Code 2:(word replace,adding,delete)
+# Function to calculate the standard Edit Distance between two strings
+def edit_distance(s1, s2):
+    m, n = len(s1), len(s2)
+
+    # Initialize DP table with size (m+1) x (n+1)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+    # Fill the DP table
+    for i in range(m + 1):
+        for j in range(n + 1):
+            # If first string is empty, insert all characters from second string
+            if i == 0:
+                dp[i][j] = j  
+            # If second string is empty, remove all characters from first string
+            elif j == 0:
+                dp[i][j] = i  
+            # If characters match, copy the previous diagonal value
+            elif s1[i - 1] == s2[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1]
+            # If characters don't match, take the minimum of insert, delete, or replace
+            else:
+                dp[i][j] = 1 + min(dp[i][j - 1],    # Insert
+                                   dp[i - 1][j],    # Delete
+                                   dp[i - 1][j - 1] # Replace
+                                   )
+
+    return dp[m][n]
+
+# Function to calculate Weighted Edit Distance
+def weighted_edit_distance(s1, s2, insert_cost, delete_cost, replace_cost):
+    m, n = len(s1), len(s2)
+
+    # Initialize DP table
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+    # Fill the DP table
+    for i in range(m + 1):
+        for j in range(n + 1):
+            # If first string is empty, insert all characters (weighted cost)
+            if i == 0:
+                dp[i][j] = j * insert_cost
+            # If second string is empty, delete all characters (weighted cost)
+            elif j == 0:
+                dp[i][j] = i * delete_cost
+            # If characters match, copy the previous diagonal value
+            elif s1[i - 1] == s2[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1]
+            # If characters don't match, take the minimum of weighted operations
+            else:
+                dp[i][j] = min(dp[i][j - 1] + insert_cost,   # Insert
+                               dp[i - 1][j] + delete_cost,   # Delete
+                               dp[i - 1][j - 1] + replace_cost # Replace
+                               )
+
+    return dp[m][n]
+
+# Example usage
+s1 = "kitten"
+s2 = "sitting"
+
+print("Edit Distance:", edit_distance(s1, s2))
+print("Weighted Edit Distance:", weighted_edit_distance(s1, s2, insert_cost=1, delete_cost=1, replace_cost=2))
+
+
+
+
+
+Practical Code3:(Page rank)
+
+def page_rank(graph, damping_factor=0.85, max_iterations=100, tolerance=1.0e-6):
+    # Initialize the page rank for each node
+    num_nodes = len(graph)
+    initial_pr = 1.0 / num_nodes
+    page_rank = {node: initial_pr for node in graph}
+    
+    # Compute outgoing degrees (number of outgoing links per node)
+    out_degrees = {node: len(graph[node]) for node in graph}
+    
+    for _ in range(max_iterations):
+        prev_page_rank = page_rank.copy()  # Store previous iteration values
+        total_diff = 0.0  # Track convergence
+        
+        for node in graph:  # Iterate over each node
+            page_rank[node] = (1 - damping_factor)  # Base rank (teleportation factor)
+            node_total = 0  # Sum of contributions from incoming links
+            
+            for neighbor in graph:  # Check incoming links
+                if node in graph[neighbor]:  # If neighbor links to node
+                    node_total += prev_page_rank[neighbor] / out_degrees[neighbor]
+            
+            # Apply PageRank formula
+            page_rank[node] += damping_factor * node_total
+            
+            # Compute difference for convergence check
+            diff = abs(prev_page_rank[node] - page_rank[node])
+            total_diff += diff
+        
+        # Check for convergence
+        if total_diff < tolerance:
+            break
+    
+    return page_rank
+
+def invert_graph(graph):
+    """ Converts a directed graph into an inverse graph (reversing edges). """
+    inverted_graph = {node: [] for node in graph}
+    
+    for node in graph:
+        for neighbor in graph[node]:  # Reverse the edges
+            inverted_graph[neighbor].append(node)
+    
+    return inverted_graph
+
+# Define the graph
+graph = {
+    "A": ["B","C"],  
+    "B": ["C"],  
+    "C": ["A"]
+    
+}
+
+# Compute PageRank
+ranks = page_rank(graph)
+
+# Print PageRank results
+print("PageRank scores:")
+for node, rank in ranks.items():
+    print(f"{node}: {rank:.6f}")
+
+# Invert the graph
+inverted_graph = invert_graph(graph)
+print("\nInverted Graph:")
+for node, neighbors in inverted_graph.items():
+    print(f"{node} -> {neighbors}")
+
+
+
+
+
+Practical code 4 :(Similarity) :  
+
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import numpy as np
+from collections import defaultdict
+
+# Download necessary NLTK data
+nltk.download("punkt")
+nltk.download("stopwords")
+
+def processFile(file):
+    """Reads a text file, tokenizes, stems, removes stopwords, and counts word occurrences."""
+    text = open(file, 'r', encoding='utf-8').read().lower()
+    tokens = word_tokenize(text)  # Tokenize words
+    porter = nltk.PorterStemmer()
+    stemmed = [porter.stem(w) for w in tokens]  # Apply stemming
+    stop_words = set(stopwords.words('english'))
+    filtered = [w for w in stemmed if w not in stop_words and w.isalnum()]  # Remove stopwords and keep only words
+    count = defaultdict(int)
+    for word in filtered:
+        count[word] += 1  # Count word frequency
+    return count
+
+def cos_sim(a, b):
+    """Computes cosine similarity between two vectors."""
+    dot = np.dot(a, b)  # Dot product of vectors
+    mag_a = np.linalg.norm(a)  # Magnitude of vector a
+    mag_b = np.linalg.norm(b)  # Magnitude of vector b
+    return dot / (mag_a * mag_b) if mag_a * mag_b != 0 else 0  # Avoid division by zero
+
+def getSimilarity(d1, d2):
+    """Converts word frequency dictionaries into vectors and computes cosine similarity."""
+    allwords = list(set(d1.keys()).union(set(d2.keys())))  # Get all unique words from both documents
+    v1 = np.array([d1.get(word, 0) for word in allwords])  # Convert to vector
+    v2 = np.array([d2.get(word, 0) for word in allwords])  # Convert to vector
+    return cos_sim(v1, v2)
+
+# Process the documents
+doc1 = processFile('doc1.txt')
+doc2 = processFile('doc2.txt')
+
+# Compute and print similarity
+similarity = getSimilarity(doc1, doc2)
+print("Cosine Similarity:", similarity)
+
+
+
+Practical code 5  (stop words removal) :
+a. Direct text
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import nltk
+
+# Download necessary datasets
+nltk.download('punkt')
+nltk.download('stopwords')
+
+# Sample text for processing
+example_sent = "This is a sample sentence, show off the stop words filtration."
+
+# Load English stopwords
+stop_words = set(stopwords.words('english'))
+
+# Tokenize the sentence into words
+word_tokens = word_tokenize(example_sent)
+
+# Print tokenized words
+print("Tokenized Words:", word_tokens)
+
+# Remove stopwords using list comprehension
+filtered_sentence = [w for w in word_tokens if w.lower() not in stop_words]
+
+# Print filtered words
+print("Filtered Sentence (List Comprehension):", filtered_sentence)
+
+# Alternative method using a loop
+filtered_sentence_loop = []
+for w in word_tokens:
+    if w.lower() not in stop_words:
+        filtered_sentence_loop.append(w)
+
+# Print filtered words (loop method)
+print("Filtered Sentence (Loop Method):", filtered_sentence_loop)
+
+  
+b. reading text from a text file &amp; importing it in a text file
+
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import nltk
+
+# Download necessary datasets
+nltk.download('punkt')
+nltk.download('stopwords')
+
+# Load English stopwords
+stop_words = set(stopwords.words('english'))
+
+# Open and read the input text file
+with open('doc1', 'r') as f:
+    words = f.read()
+
+# Tokenize the text into words
+word_tokens = word_tokenize(words)
+
+# Remove stopwords
+filtered_sentence = [w for w in word_tokens if w.lower() not in stop_words]
+
+# Print the filtered words
+print("Filtered Sentence:", filtered_sentence)
+
+# Write the filtered words to the output file
+with open('to_write_file.txt', 'w') as write_file:
+    write_file.write(" ".join(filtered_sentence))
+
+
+
+
+
+Practical 6 (Crawling pages check for the word):
+
+from html.parser import HTMLParser
+from urllib.request import urlopen
+from urllib import parse
+import json
+
+# HTML Parser to extract links
+class LinkParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.links = []
+        self.baseUrl = ""
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            for (key, value) in attrs:
+                if key == "href":
+                    newUrl = parse.urljoin(self.baseUrl, value)
+                    self.links.append(newUrl)
+
+    def getLinks(self, url):
+        """ Fetches HTML content and extracts links """
+        self.links = []
+        self.baseUrl = url
+        try:
+            response = urlopen(url)
+            if "text/html" in response.getheader("Content-Type"):
+                htmlContent = response.read().decode("utf-8")
+                self.feed(htmlContent)
+                response.close()
+                return htmlContent, self.links
+        except Exception as e:
+            print(f" Failed to fetch {url}: {e}")
+        return "", []
+
+
+def crawl(url, word, max_pages=10):
+    """ Crawls web pages and finds the word """
+    found_urls = []
+    visited_urls = set()
+    num_visited = 0
+    parser = LinkParser()
+
+    # Start with the initial URL
+    data, links = parser.getLinks(url)
+    links.append(url)  # Include the starting page
+
+    for link in links:
+        if num_visited >= max_pages:
+            break  # Stop after visiting max_pages
+
+        if link not in visited_urls:
+            visited_urls.add(link)
+            num_visited += 1
+
+            print(f" Scanning {num_visited}: {link}")
+            data, new_links = parser.getLinks(link)
+
+            if word.lower() in data.lower():
+                print(f" Found '{word}' at: {link}")
+                found_urls.append(link)
+            else:
+                print(f" No match found in: {link}")
+
+    print(f" Finished! Crawled {num_visited} pages.")
+    print(json.dumps(found_urls, indent=2))
+
+
+# Start crawling from a public webpage
+crawl("https://en.wikipedia.org/wiki/Web_crawler", "crawler")
+
+
+
+
+
+
+
+Practical 7 (Document Indexing and Retrieval):
+sample#:
+import nltk
+from nltk.corpus import stopwords
+from collections import defaultdict
+
+nltk.download('stopwords')
+stopw = stopwords.words('english')
+
+print('Download successfull')
+
+docs = {
+1:"Information Information retrieval is an essential aspect of searchj engines.",
+2:"The field of models information retrieval focuses ion algorithm.",
+3:"Search engines use retrieval techniques to improve perfromance.",
+4:"Deep learning models models are used for information retrieval tasks.",
+}
+
+def build_inverted_index(dcs):
+    indx = defaultdict(lambda: defaultdict(int))
+    for doc_id, text in dcs.items():
+        words = text.lower().split()
+        for word in words:
+            if word in stopw:
+                continue
+            else:
+                indx[word][doc_id] += 1
+    print('The inverted index is')
+    for key in indx.keys():
+        print(f"key => ",end=" ")
+        for doc_id, freq in indx[key].items():
+            print(f"Doc {doc_id}[{freq}], ",end=" ")
+        print(" ")
+    return indx
+
+def doQuery(indx):
+    while(True):
+        tt = input('Enter search term or q to quit: ').lower()
+        if (tt == 'q'):
+            break
+        else:
+            query_words = tt.lower().split()
+            result_docs = None
+            for word in query_words:
+                if word in indx:
+                    word_docs = set(indx[word].keys())
+                    if result_docs is None:
+                        result_docs = word_docs
+                    else:
+                        result_docs = result_docs.intersection(word_docs)
+                else:
+                    print('no results found')
+            print(f"Results for search query are: {result_docs}")
+            
+
+indx = build_inverted_index(docs)
+doQuery(indx)
+
+
+
+Code1:
+
+1) Implement an inverted index concept to index:
+
+import nltk
+from nltk.corpus import stopwords
+
+# Download stopwords (only if you don't already have them)
+nltk.download('stopwords')
+
+# Define the documents
+document1 = "The quick brown fox jumped over the lazy dog"
+document2 = "The lazy dog slept in the sun"
+
+# Get the stopwords for the English language from NLTK
+stop_words = set(stopwords.words('english'))
+
+# Step 1: Tokenize and Convert to Lowercase
+tokens1 = document1.lower().split()
+tokens2 = document2.lower().split()
+
+# Get the unique words (terms) from both documents
+terms = list(set(tokens1 + tokens2))
+
+# Step 2: Build the Inverted Index
+inverted_index = {}  # Dictionary to store word mappings
+occ_num_doc1 = {}  # Frequency of words in Document 1
+occ_num_doc2 = {}  # Frequency of words in Document 2
+
+# Loop through all terms
+for term in terms:
+    if term in stop_words:
+        continue  # Skip stopwords
+
+    documents = []  # Stores documents containing the term
+
+    # Check if the word is in Document 1
+    if term in tokens1:
+        documents.append("Document 1")
+        occ_num_doc1[term] = tokens1.count(term)
+
+    # Check if the word is in Document 2
+    if term in tokens2:
+        documents.append("Document 2")
+        occ_num_doc2[term] = tokens2.count(term)
+
+    # Store term mapping in the inverted index
+    inverted_index[term] = documents
+
+# Step 3: Print the Inverted Index
+for term, documents in inverted_index.items():
+    print(f"{term} ->", end=" ")
+
+    for doc in documents:
+        if doc == "Document 1":
+            print(f"{doc} ({occ_num_doc1.get(term, 0)}),", end=" ")
+        else:
+            print(f"{doc} ({occ_num_doc2.get(term, 0)}),", end=" ")
+    
+    print()  # Newline after each term
+
+
+
+
+Part B:
+
+This Python script retrieves document numbers based on a user query using an inverted index.
+import string
+from collections import defaultdict
+
+# Step 1: Preprocess text (convert to lowercase, remove punctuation)
+def preprocess_text(text):
+    text = text.lower()  # Convert to lowercase
+    text = text.translate(str.maketrans("", "", string.punctuation))  # Remove punctuation
+    return text.split()  # Tokenize by splitting the text into words
+
+# Step 2: Build the Inverted Index
+def build_inverted_index(documents):
+    inverted_index = defaultdict(set)  # Dictionary where each word maps to a set of document IDs
+    
+    for doc_id, text in documents.items():
+        words = preprocess_text(text)  # Preprocess document text
+        for word in words:
+            inverted_index[word].add(doc_id)  # Add document ID for each word
+    
+    return inverted_index
+
+# Step 3: Query the Inverted Index
+def search(inverted_index, query):
+    query_terms = preprocess_text(query)  # Preprocess the query
+    result_set = None  # To store the set of matching document IDs
+    
+    for term in query_terms:
+        if term in inverted_index:
+            if result_set is None:
+                result_set = inverted_index[term]  # First match
+            else:
+                result_set = result_set.intersection(inverted_index[term])  # Intersection for AND search
+        else:
+            return set()  # If any term is missing, return empty set
+    
+    return result_set if result_set else set()
+
+# Step 4: Example Documents
+documents = {
+    1: "Information retrieval is an essential aspect of search engines.",
+    2: "The field of information retrieval focuses on algorithms.",
+    3: "Search engines use retrieval techniques to improve performance.",
+    4: "Deep learning models are used for information retrieval tasks."
+}
+
+# Build the inverted index
+inverted_index = build_inverted_index(documents)
+
+# Example Query
+query = "information retrieval"
+result = search(inverted_index, query)
+
+# Display Results
+print(f"Documents containing the query '{query}': {sorted(result)}")
+
+
+
+
+
+
+
+
+Practical 8:
+
+import csv  # Importing CSV module to handle CSV file writing
+import requests  # Importing requests module to fetch RSS feeds from the web
+import xml.etree.ElementTree as ET  # Importing XML parser to process RSS feeds
+
+
+# Function to load the RSS feed from the given URL and save it as an XML file
+def load_rss(url, filename):
+    try:
+        # Sending an HTTP GET request to the RSS feed URL
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error if response status is not 200 OK
+
+        # Writing the response content (XML data) into a file
+        with open(filename, 'wb') as file:
+            file.write(response.content)
+
+        print(f" RSS feed loaded and saved to '{filename}'")
+        return True  # Return True if loading is successful
+    except requests.RequestException as e:
+        print(f" Error loading RSS feed: {e}")
+        return False  # Return False if an error occurs
+
+
+# Function to parse the XML file and extract relevant news items
+def parse_xml(filename):
+    try:
+        # Parsing the XML file and getting the root element
+        tree = ET.parse(filename)
+        root = tree.getroot()
+        print("XML file parsed successfully.")
+
+        news_items = []  # List to store extracted news articles
+
+        # Iterating through all <item> elements in the XML (each representing a news article)
+        for item in root.findall(".//item"):
+            news = {}  # Dictionary to store a single news article
+
+            # Loop through each child tag in <item>
+            for child in item:
+                if not child.tag.endswith("thumbnail"):  # Ignore <thumbnail> tags
+                    news[child.tag] = child.text  # Store tag name and its text content
+
+            news_items.append(news)  # Append the extracted news dictionary to the list
+
+        return news_items  # Return the list of news items
+    except Exception as e:
+        print(f" Error parsing XML file: {e}")
+        return []  # Return an empty list if parsing fails
+
+
+# Function to save extracted news data into a CSV file
+def save_to_csv(news_items, filename):
+    if not news_items:  # If no data is available, print a warning and exit
+        print("⚠ No data available to save.")
+        return
+
+    # Define CSV column headers (should match keys in the extracted news dictionary)
+    fields = ['guid', 'title', 'pubDate', 'description', 'link']
+
+    try:
+        # Open a CSV file in write mode
+        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fields)  # Initialize CSV writer
+            writer.writeheader()  # Write column headers
+            writer.writerows(news_items)  # Write extracted news data as rows
+
+        print(f"Data successfully saved to '{filename}'")
+    except Exception as e:
+        print(f"Error writing to CSV: {e}")
+
+
+# Main function to execute all the steps in sequence
+def main():
+    rss_url = "http://feeds.bbci.co.uk/news/rss.xml"  # RSS feed URL
+    xml_filename = "topnewsfeed.xml"  # XML file where RSS data will be stored
+    csv_filename = "topnews.csv"  # CSV file where extracted news data will be saved
+
+    # Step 1: Load the RSS feed
+    if load_rss(rss_url, xml_filename):
+        # Step 2: Parse the XML file
+        news_items = parse_xml(xml_filename)
+
+        # Step 3: Save parsed data to a CSV file
+        save_to_csv(news_items, csv_filename)
+
+
+# Run the script only if this file is executed directly
+if __name__ == "__main__":
+    main()
+
+
+
+Option2:
+
+import csv  # Importing CSV module to handle CSV file writing
+import requests  # Importing requests module to fetch RSS feeds from the web
+import xml.etree.ElementTree as ET  # Importing XML parser to process RSS feeds
+
+
+# Function to load the RSS feed from the given URL and save it as an XML file
+def load_rss():
+    url = 'https://feeds.bbci.co.uk/news/rss.xml'  # URL of the RSS feed
+    try:
+        response = requests.get(url)  # Sending an HTTP request to get RSS feed data
+        response.raise_for_status()  # Raise an error if the request fails
+
+        # Write the fetched content to an XML file
+        with open('topnewsfeed.xml', 'wb') as file:
+            file.write(response.content)
+
+        print(' RSS feed loaded and saved as topnewsfeed.xml')
+    except requests.RequestException as e:
+        print(f" Error fetching RSS feed: {e}")
+
+
+# Function to parse the XML file and extract relevant news data
+def parse_xml():
+    try:
+        tree = ET.parse('topnewsfeed.xml')  # Parse the XML file
+        root = tree.getroot()  # Get the root element of the XML
+        news_items = []  # List to store extracted news articles
+
+        # Iterate through all <item> elements in the XML (each representing a news article)
+        for item in root.findall('./channel/item'):
+            news = {}  # Dictionary to store details of a news article
+
+            # Extract relevant fields from each <item>
+            for child in item:
+                if not child.tag.endswith('thumbnail'):  # Ignore <thumbnail> tags
+                    news[child.tag] = child.text  # Store the tag and its text content
+
+            news_items.append(news)  # Append the news dictionary to the list
+
+        print(f" Successfully parsed {len(news_items)} news articles.")
+        return news_items  # Return the extracted news articles
+
+    except FileNotFoundError:
+        print(" Error: The XML file 'topnewsfeed.xml' was not found. Please run load_rss() first.")
+        return []
+    except ET.ParseError as e:
+        print(f" XML Parsing Error: {e}")
+        return []
+
+
+# Function to save extracted news data into a CSV file
+def save_to_csv(news_items):
+    if not news_items:  # If no data is available, print a warning and exit
+        print(" No data available to save.")
+        return
+
+    fields = ['guid', 'title', 'pubDate', 'description', 'link']  # Define CSV column headers
+
+    try:
+        # Open a CSV file in write mode
+        with open('topnews.csv', 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fields)  # Initialize CSV writer
+            writer.writeheader()  # Write column headers
+            writer.writerows(news_items)  # Write extracted news data as rows
+
+        print(" Data successfully saved to 'topnews.csv'")
+    except Exception as e:
+        print(f" Error writing to CSV: {e}")
+
+
+# Main function to execute all steps
+def main():
+    load_rss()  # Step 1: Fetch the RSS feed and save it as an XML file
+    news_items = parse_xml()  # Step 2: Parse the XML file and extract news
+    save_to_csv(news_items)  # Step 3: Save the extracted data into a CSV file
+
+
+# Run the script only if executed directly
+if __name__ == '__main__':
+    main()
+
+
+Option3:
+
+
+import os  # Import os to check file existence
+import csv  # Importing CSV module to handle CSV file writing
+import requests  # Importing requests module to fetch RSS feeds from the web
+import xml.etree.ElementTree as ET  # Importing XML parser to process RSS feeds
+
+
+# Function to load the RSS feed from the given URL and save it as an XML file
+def load_rss(url, filename):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error if the request fails
+
+        with open(filename, 'wb') as file:
+            file.write(response.content)
+
+        print(f"✅ RSS feed loaded and saved to '{filename}'")
+        return True  # Return True if successful
+    except requests.RequestException as e:
+        print(f"❌ Error loading RSS feed: {e}")
+        return False  # Return False if an error occurs
+
+
+# Function to parse the XML file and extract relevant news items
+def parse_xml(filename):
+    if not os.path.exists(filename):  # Check if file exists before parsing
+        print(f"❌ Error: The XML file '{filename}' does not exist. Run load_rss() first.")
+        return []
+
+    try:
+        tree = ET.parse(filename)  # Parse the XML file
+        root = tree.getroot()
+        print("✅ XML file parsed successfully.")
+
+        news_items = []  # List to store extracted news articles
+
+        # Iterate through all <item> elements in the XML
+        for item in root.findall(".//item"):
+            news = {}  # Dictionary to store a single news article
+
+            for child in item:
+                if not child.tag.endswith("thumbnail"):  # Ignore <thumbnail> tags
+                    news[child.tag] = child.text  # Store tag name and text content
+
+            news_items.append(news)
+
+        return news_items
+    except Exception as e:
+        print(f"❌ Error parsing XML file: {e}")
+        return []  # Return an empty list if parsing fails
+
+
+# Function to save extracted news data into a CSV file
+def save_to_csv(news_items, filename):
+    if not news_items:
+        print("⚠ No data available to save.")
+        return
+
+    fields = ['guid', 'title', 'pubDate', 'description', 'link']
+
+    try:
+        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(news_items)
+
+        print(f"✅ Data successfully saved to '{filename}'")
+    except Exception as e:
+        print(f"❌ Error writing to CSV: {e}")
+
+
+# Main function to execute all steps in sequence
+def main():
+    rss_url = "http://feeds.bbci.co.uk/news/rss.xml"  # RSS feed URL
+    xml_filename = "topnewsfeed.xml"  # XML file where RSS data will be stored
+    csv_filename = "topnews.csv"  # CSV file where extracted news data will be saved
+
+    # Step 1: Load the RSS feed
+    if load_rss(rss_url, xml_filename):
+        # Step 2: Parse the XML file
+        news_items = parse_xml(xml_filename)
+
+        # Step 3: Save parsed data to a CSV file
+        save_to_csv(news_items, csv_filename)
+
+
+# Run the script only if executed directly
+if __name__ == "__main__":
+    main()
+
+
